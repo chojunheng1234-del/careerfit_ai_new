@@ -37,14 +37,41 @@ Q1. 취업 또는 공모전을 준비하면서 가장 불편했던 점은 무엇
 
 ## 진행 현황
 
+```markdown
+## 프론트엔드 실행 방법
 
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-- [x] 1일차: 프로젝트 기획 및 개발 환경 세팅
+프론트엔드: http://localhost:5173
+백엔드 API: http://localhost:8000/docs
 
-- [x] 2일차: FastAPI 서버 구축 및 Gemini API 연결
+## 주요 기능
 
-- [x] 3일차: 데이터 파이프라인 구축
+- [x] 역량 분석 입력 폼 (전공·스킬·관심 직무)
+- [x] RAG 기반 AI 분석 결과 카드
+- [x] 출처 공고 카드 (어떤 데이터를 근거로 했는지 표시)
+## 진행 현황
 
+- [x] 1일차: 기획 및 개발 환경 세팅
+- [x] 2일차: FastAPI + Gemini API 연결
+- [x] 3일차: 데이터 파이프라인
 - [x] 4일차: RAG 기반 서비스 + React UI
-
 - [ ] 5일차: Docker + 포트폴리오 완성
+```
+
+```bash
+git add .
+git commit -m "feat: RAG 기반 /analyze API 및 React UI 구현
+
+- ChromaDB 문서 검색 (rag_service.py)
+- Gemini RAG 연결 답변 생성 (llm_service.py)
+- React + Vite 프로젝트 생성
+- InputForm, ResultCard, SourceCard 컴포넌트
+- fetch로 /analyze API 연결
+- design-skill.md 작성"
+git push
+```

@@ -61,7 +61,7 @@ function App() {
 
         {result && (
           <div className="mt-8 space-y-4">
-            <ResultCard answer={result.answer} />
+            <ResultCard answer={result.answer}/>
             {result.sources && result.sources.length > 0 && (
               <SourceCard sources={result.sources} />
             )}
