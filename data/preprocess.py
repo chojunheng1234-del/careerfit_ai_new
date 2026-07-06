@@ -7,6 +7,7 @@ import pandas as pd
 import sqlite3
 import json
 import os
+from datetime import date
 
 # ─── 1. 파일 경로 설정 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -87,15 +88,38 @@ def handle_missing(df: pd.DataFrame) -> pd.DataFrame:
     print(f"   제거된 행: {before - after}행")
     return df
 
+# 5. 중복 제거
+def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    중복 행을 확인하고 제거합니다.
+    company + title 조합이 같으면 중복으로 판단합니다.
+    """
+    print("\n=== 중복 확인 ===")
+    before = len(df)
+    # company + title 기준으로 중복 확인
+    duplicated = df.duplicated(subset=["company", "title"], keep=False)
+
+    if duplicated.sum() > 0:
+        print(f"   ⚠️  중복 발견: {duplicated.sum()}행")
+        print(df[duplicated][["company", "title"]])
+    else:
+        print("   ✅ 중복 없음")
+    # 첫 번째 행만 남기고 중복 제거
+
+    df = df.drop_duplicates(subset=["company", "title"], keep="first")
+    after = len(df)
+    print(f"   제거 후: {after}행 (제거: {before - after}행)")
+    return df
+
 if __name__ == "__main__":
     df_jobs = load_data(JOBS_CSV)       # 1. 읽기
     df_jobs = check_missing(df_jobs)    # 2. 결측치 확인
     df_jobs = handle_missing(df_jobs)   # 3. 결측치 처리
-    df_jobs = df_jobs.drop_duplicates() # 4. 중복 제거
+    df_jobs = remove_duplicates(df_jobs) # 4. 중복 제거
     print(f"\n✅ 전처리 완료: 최종 {len(df_jobs)}행")
 
 
-# ─── 5. 스킬 표준화 [표준화 사전: 왼쪽 -> 오른쪽으로 변환합니다]
+# ─── 6. 스킬 표준화 [표준화 사전: 왼쪽 -> 오른쪽으로 변환합니다]
 SKILL_NORMALIZATION = {
     "python": "Python",
     "sql": "SQL",
@@ -151,7 +175,7 @@ if __name__ == "__main__":
     df_jobs = standardize_skills(df_jobs)   # ← 추가
     print(f"\n✅ 전처리 완료: 최종 {len(df_jobs)}행")
 
-# ─── 6. SQLite 저장
+# ─── 7. SQLite 저장
 def save_to_sqlite(df: pd.DataFrame, db_path: str) -> None:
     """
     전처리된 DataFrame을 SQLite 데이터베이스에 저장합니다.
@@ -183,7 +207,7 @@ if __name__ == "__main__":
     save_to_sqlite(df_jobs, DB_PATH)        # ← 추가
     print(f"\n✅ 전처리 완료: 최종 {len(df_jobs)}행")
 
-# ─── 7. SQLite 조회
+# ─── 8. SQLite 조회
 def query_sqlite(db_path: str) -> None:
     """
     SQLite에서 데이터를 조회해 저장 결과를 확인합니다.
@@ -231,7 +255,7 @@ if __name__ == "__main__":
     query_sqlite(DB_PATH)                   # ← 추가
     print(f"\n✅ 전처리 완료: 최종 {len(df_jobs)}행")
 
-# ─── 8. RAG 문서 생성
+# ─── 9. RAG 문서 생성
 def convert_to_rag_documents(df: pd.DataFrame) -> list:
     """
     DataFrame의 각 행을 RAG 검색에 적합한 자연어 문서로 변환합니다.
@@ -250,14 +274,21 @@ def convert_to_rag_documents(df: pd.DataFrame) -> list:
             f"업무 내용: {row.get('description', '정보 없음')}"
         )
 
+        deadline = str(row.get("deadline", ""))
+        company = str(row.get("company", ""))
+
         # metadata: 검색 결과를 필터링하거나 출처를 표시할 때 사용합니다
         metadata = {
             "id": str(row.get("id", "")),
-            "company": str(row.get("company", "")),
+            "company": company,
             "title": str(row.get("title", "")),
             "job_type": str(row.get("job_type", "")),
-            "deadline": str(row.get("deadline", "")),
-            "source": "jobs.csv"
+            "deadline": deadline,
+            "source": "jobs.csv",
+
+            "deadline_month": deadline[5:7] if len(deadline) >= 7 and deadline[4] == "-" else "",
+            "is_startup": "true" if "스타트업" in company else "false",
+            "first_saved_date": date.today().isoformat() # 수정
         }
         documents.append({
             "text": doc_text,
