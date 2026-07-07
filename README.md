@@ -1,77 +1,240 @@
-# careerfit_ai_new
-취업/공모전 데이터 기반 AI 포트폴리오 코치
-
 # CareerFit AI
 
 > 취업·공모전 데이터 기반 맞춤형 AI 포트폴리오 코치
 
+---
 
+## 📌 프로젝트 개요
 
-## 프로젝트 개요
+취업을 준비하는 학생들은 자신의 전공과 스킬이 실제 채용 시장의 요구와 얼마나 맞는지 파악하기 어렵고, 수많은 채용 공고를 직접 비교해야 하는 불편함이 있습니다.
 
-Q1. 취업 또는 공모전을 준비하면서 가장 불편했던 점은 무엇인가?
-- 어떤 스킬을 준비해야 할지 모른다.
-- 비슷한 공고들을 비교하기가 너무 귀찮다.
-- 내 이력서가 이 직무에 맞는지 모르겠다.
-- 중소기업 및 중견기업의 기업 정보가 너무 부족하다.
+CareerFit AI는 **RAG(Retrieval-Augmented Generation)** 구조를 활용하여 사용자의 전공, 보유 스킬, 관심 직무를 실제 채용 공고 데이터와 비교하고, AI가 근거 있는 맞춤형 역량 분석과 준비 방향을 제공합니다.
 
-[본인이 정리한 문제정의 한 단락]
+---
 
-## 기술 스택
-
-
+## 🛠 기술 스택
 
 | 영역 | 기술 |
-
 |---|---|
-
-| 백엔드 | Python, FastAPI |
-
+| 백엔드 | Python 3.11, FastAPI |
 | AI API | Gemini 2.5 Flash-Lite |
-
 | 데이터 | Pandas, SQLite, ChromaDB |
-
 | 프론트엔드 | React, Vite |
-
 | 실행 환경 | Docker |
+| 배포 | Render |
 
-## 진행 현황
+---
 
-```markdown
-## 프론트엔드 실행 방법
+## 🏗 아키텍처
+
+```text
+React (Vite)
+      │
+      ▼
+FastAPI (/analyze)
+      │
+      ├── ChromaDB (유사도 검색)
+      │
+      ├── SQLite (공고 데이터 조회)
+      │
+      ▼
+Gemini API
+      │
+      ▼
+AI 분석 결과 + Sources 반환
+```
+
+---
+
+# 🚀 실행 방법
+
+## Docker로 실행 (Backend)
+
+```bash
+cd backend
+
+docker build -t careerfit-ai .
+
+docker run -p 8000:8000 --env-file .env careerfit-ai
+```
+
+API 문서
+
+```
+http://localhost:8000/docs
+```
+
+Health Check
+
+```
+http://localhost:8000/health
+```
+
+---
+
+## 로컬 실행
+
+### Backend
+
+```bash
+cd backend
+
+source venv/bin/activate
+# Windows
+# venv\Scripts\activate
+
+pip install -r requirements.txt
+
+uvicorn main:app --reload
+```
+
+### Frontend
 
 ```bash
 cd frontend
+
 npm install
 npm run dev
 ```
 
-프론트엔드: http://localhost:5173
-백엔드 API: http://localhost:8000/docs
+Frontend
 
-## 주요 기능
-
-- [x] 역량 분석 입력 폼 (전공·스킬·관심 직무)
-- [x] RAG 기반 AI 분석 결과 카드
-- [x] 출처 공고 카드 (어떤 데이터를 근거로 했는지 표시)
-## 진행 현황
-
-- [x] 1일차: 기획 및 개발 환경 세팅
-- [x] 2일차: FastAPI + Gemini API 연결
-- [x] 3일차: 데이터 파이프라인
-- [x] 4일차: RAG 기반 서비스 + React UI
-- [ ] 5일차: Docker + 포트폴리오 완성
 ```
+http://localhost:5173
+```
+
+Backend API
+
+```
+http://localhost:8000
+```
+
+---
+
+## 🔐 환경변수
+
+### backend/.env.example
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+FRONTEND_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+### frontend/.env.example
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+`.env.example`를 복사하여 `.env` 파일을 생성한 뒤 자신의 환경에 맞게 값을 입력합니다.
 
 ```bash
-git add .
-git commit -m "feat: RAG 기반 /analyze API 및 React UI 구현
-
-- ChromaDB 문서 검색 (rag_service.py)
-- Gemini RAG 연결 답변 생성 (llm_service.py)
-- React + Vite 프로젝트 생성
-- InputForm, ResultCard, SourceCard 컴포넌트
-- fetch로 /analyze API 연결
-- design-skill.md 작성"
-git push
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 ```
+
+> `.env` 파일은 API Key 등 민감한 정보를 포함하므로 GitHub에 업로드하지 않습니다.
+
+---
+
+## 📊 데이터 파이프라인
+
+```text
+CSV
+  │
+  ▼
+Pandas 전처리
+  │
+  ├── SQLite (정확 조회)
+  │
+  └── ChromaDB (벡터 검색)
+            │
+            ▼
+        RAG 검색
+            │
+            ▼
+        Gemini 분석
+            │
+            ▼
+AI 답변 + Sources
+```
+
+---
+
+## ✨ 주요 기능
+
+- RAG 기반 AI 역량 분석
+- 실제 채용 공고를 근거로 맞춤형 조언 제공
+- 참고한 공고(Source) 함께 반환
+- FastAPI REST API 제공
+- React 기반 사용자 인터페이스
+- Docker 기반 실행 및 배포
+
+---
+
+## 📁 프로젝트 구조
+
+```text
+careerfit_ai_new/
+
+├── backend/
+│   ├── routers/
+│   ├── services/
+│   ├── data/
+│   ├── main.py
+│   └── Dockerfile
+│
+├── frontend/
+│   ├── src/
+│   └── public/
+│
+├── docs/
+│   ├── CHECKLIST.md
+│   ├── PROJECT_PLAN.md
+│   ├── PROMPTS.md
+│   └── EVAL_QUESTIONS.md
+│
+└── README.md
+```
+
+---
+
+## 🌐 배포
+
+### Backend (Render)
+
+- API
+  - https://careerfit-ai-od1g.onrender.com/
+
+- Swagger
+  - https://careerfit-ai-od1g.onrender.com/docs
+
+- Health Check
+  - https://careerfit-ai-od1g.onrender.com/health
+
+> Render 무료 플랜 특성상 첫 요청 시 약 30~60초 정도 서버가 시작되는 시간이 필요할 수 있습니다.
+
+---
+
+## 🔮 향후 개선
+
+- [ ] 최신 채용 공고 자동 수집
+- [ ] PDF 이력서 자동 분석
+- [ ] 공모전 일정 추천
+- [ ] 사용자 맞춤 학습 로드맵 제공
+- [ ] 프론트엔드 Render 배포
+- [ ] RAG 검색 품질 평가(Ragas 등)
+
+---
+
+## 📝 개발 과정
+
+가장 어려웠던 부분은 **ChromaDB 검색 결과를 Gemini와 연결하여 근거(Source)를 함께 반환하는 RAG 구현**이었습니다. 검색된 문서를 프롬프트에 포함하고 응답 구조를 `answer`와 `sources`로 분리하여 근거 기반 답변을 제공하도록 개선했습니다.
+
+---
+
+## 👨‍💻 Developer
+
+- **Name** : 조준형
+- **Role** : Backend · AI Service Development
+- **Project** : CareerFit AI
