@@ -249,3 +249,5 @@ https://careerfit-ai-od1g.onrender.com/health
 - **Name** : 조준형
 - **Role** : Backend · AI Service Development
 - **Project** : CareerFit AI
+- **GitHub** : @chojunheng1234-del
+- **Email** : chojunheng1234@gmail.com
